@@ -14,7 +14,8 @@ from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.medical_agent import MedicalRecordAgent
+from agents.medical_agent import MedicalRecordAgent, set_api_key
+from fastapi import Header
 
 app = FastAPI(
     title="AI医疗文书智能体 - 重构版",
@@ -97,8 +98,10 @@ async def health_check():
 
 
 @app.post("/api/v3/generate-record", response_model=MedicalRecordResponse)
-async def generate_medical_record(request: MedicalRecordRequest):
+async def generate_medical_record(request: MedicalRecordRequest, x_api_key: str = Header(None, alias="X-API-Key")):
     try:
+        if x_api_key:
+            set_api_key(x_api_key)
         result = agent.process_input(request.input_text, request.record_type)
         
         if result["status"] == "awaiting_input":

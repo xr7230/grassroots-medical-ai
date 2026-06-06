@@ -17,6 +17,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# === API Key dynamic injection ===
+_api_key_override = None
+
+def set_api_key(key):
+    global _api_key_override
+    _api_key_override = key if key else None
+
+def get_api_key():
+    return _api_key_override or os.getenv("DEEPSEEK_API_KEY", "")
+
 
 def _get_disease_category(disease_name: str) -> str:
     """获取疾病所属类别（用于输入类型感知匹配）"""
@@ -1665,7 +1675,7 @@ class APIClient:
     
     def __init__(self):
         self.client = OpenAI(
-            api_key=os.getenv("DEEPSEEK_API_KEY"),
+            api_key=get_api_key(),
             base_url=os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
         )
         self.model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
@@ -3115,7 +3125,7 @@ class InfoExtractor:
     def extract_with_llm(cls, text: str) -> ExtractedInfo:
         """使用大模型提取信息"""
         client = OpenAI(
-            api_key=os.getenv("DEEPSEEK_API_KEY"),
+            api_key=get_api_key(),
             base_url=os.getenv("DEEPSEEK_API_BASE", "https://api.deepseek.com")
         )
         

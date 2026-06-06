@@ -335,6 +335,17 @@
         .modal-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
         .modal-body { padding: 30px; }
         .modal-footer { padding: 20px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 15px; }
+        /* Settings */
+        .settings-btn { position: fixed; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; background: white; border: 1px solid #e2e8f0; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 999; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .settings-btn:hover { transform: rotate(30deg); }
+        .settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .settings-modal.show { display: flex; }
+        .settings-panel { background: white; border-radius: 16px; padding: 30px; max-width: 450px; width: 90%; }
+        .settings-panel h3 { margin: 0 0 20px 0; font-size: 1.2rem; }
+        .settings-panel label { display: block; font-weight: 600; margin-bottom: 6px; color: #334155; font-size: 0.9rem; }
+        .settings-panel input { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box; }
+        .settings-panel .hint { font-size: 0.8rem; color: #94a3b8; margin-top: 6px; }
+        .settings-panel .actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
         .btn-modal { padding: 12px 28px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
         .btn-modal-primary { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; }
         .btn-modal-secondary { background: #f1f5f9; color: #64748b; }
@@ -360,7 +371,22 @@
         .toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
+
 <body>
+    <!-- Settings -->
+    <button class="settings-btn" onclick="toggleSettings()" title="配置API Key">⚙️</button>
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-panel">
+            <h3>⚙️ API 配置</h3>
+            <label>DeepSeek API Key</label>
+            <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx" autocomplete="off">
+            <div class="hint">Key 仅存储在浏览器本地，不会上传到服务器。<br>获取：<a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a></div>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="toggleSettings()">取消</button>
+                <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <div class="header">
             <h1>🏥 AI医疗文书智能体</h1>
@@ -626,6 +652,46 @@
         }
         
         // 显示Toast提示
+
+        // === API Key Settings ===
+        function getStoredApiKey() {
+            return localStorage.getItem('deepseek_api_key') || '';
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('show');
+            if (modal.classList.contains('show')) {
+                document.getElementById('apiKeyInput').value = getStoredApiKey();
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key && !key.startsWith('sk-')) {
+                showToast('API Key 应以 sk- 开头');
+                return;
+            }
+            localStorage.setItem('deepseek_api_key', key);
+            toggleSettings();
+            showToast(key ? 'API Key 已保存' : 'API Key 已清除');
+        }
+
+        // Patch fetch to inject API key header
+        const _origFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            const key = getStoredApiKey();
+            if (key && url.includes('/api/')) {
+                options.headers = options.headers || {};
+                if (options.headers instanceof Headers) {
+                    options.headers.set('X-API-Key', key);
+                } else {
+                    options.headers['X-API-Key'] = key;
+                }
+            }
+            return _origFetch(url, options);
+        };
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -953,6 +1019,46 @@
         
         // 将音频 Blob 转换为 WAV 格式
         
+
+        // === API Key Settings ===
+        function getStoredApiKey() {
+            return localStorage.getItem('deepseek_api_key') || '';
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('show');
+            if (modal.classList.contains('show')) {
+                document.getElementById('apiKeyInput').value = getStoredApiKey();
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key && !key.startsWith('sk-')) {
+                showToast('API Key 应以 sk- 开头');
+                return;
+            }
+            localStorage.setItem('deepseek_api_key', key);
+            toggleSettings();
+            showToast(key ? 'API Key 已保存' : 'API Key 已清除');
+        }
+
+        // Patch fetch to inject API key header
+        const _origFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            const key = getStoredApiKey();
+            if (key && url.includes('/api/')) {
+                options.headers = options.headers || {};
+                if (options.headers instanceof Headers) {
+                    options.headers.set('X-API-Key', key);
+                } else {
+                    options.headers['X-API-Key'] = key;
+                }
+            }
+            return _origFetch(url, options);
+        };
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
