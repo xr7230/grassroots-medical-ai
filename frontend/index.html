@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI医疗文书智能体 v3.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        
+        .version-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            position: relative;
+        }
+        
+        .tab:hover { color: #0ea5e9; background: #f1f5f9; }
+        .tab.active { color: #0ea5e9; background: white; border-bottom: 3px solid #0ea5e9; }
+        
+        .tab-content { padding: 30px; }
+        
+        .input-section { margin-bottom: 20px; }
+        
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        
+        textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+        textarea:focus, input[type="text"]:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+        textarea::placeholder, input::placeholder { color: #94a3b8; }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .btn-secondary { background: #f1f5f9; color: #64748b; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
+        
+        .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
+        .btn-purple:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4); }
+        
+        .btn-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .btn-orange:hover { transform: translateY(-2px); }
+        
+        .record-type-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        
+        .record-type-btn {
+            padding: 8px 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s;
+        }
+        
+        .record-type-btn:hover { border-color: #0ea5e9; color: #0ea5e9; }
+        .record-type-btn.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+        
+        .feature-badges { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        
+        .badge {
+            padding: 6px 14px;
+            background: #ecfdf5;
+            color: #065f46;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .badge-purple { background: #f5f3ff; color: #6d28d9; }
+        .badge-blue { background: #eff6ff; color: #1d4ed8; }
+        .badge-warning { background: #fffbeb; color: #92400e; }
+        
+        .quick-tips {
+            background: #f0f9ff;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0ea5e9;
+        }
+        
+        .quick-tips h4 { color: #075985; margin-bottom: 8px; font-size: 0.95rem; }
+        
+        .quick-tips ul { list-style: none; padding: 0; margin: 0; }
+        .quick-tips li { padding: 4px 0; color: #475569; font-size: 0.9rem; }
+        .quick-tips li::before { content: "💡"; margin-right: 8px; }
+        
+        .keyboard-hint {
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+        
+        .keyboard-hint kbd {
+            background: #334155;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: white;
+            margin: 0 3px;
+        }
+        
+        .result-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px dashed #e2e8f0;
+        }
+        
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .result-header h3 { color: #1e293b; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; }
+        
+        .result-card {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 25px;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #334155;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .result-card strong { color: #0ea5e9; }
+        
+        .qc-section {
+            margin-top: 20px;
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 14px 14px 0;
+            padding: 20px;
+        }
+        
+        .qc-section h4 { color: #92400e; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .ai-section {
+            margin-top: 20px;
+            background: #f5f3ff;
+            border-left: 4px solid #8b5cf6;
+            border-radius: 0 14px 14px 0;
+            padding: 20px;
+        }
+        
+        .ai-section h4 { color: #6d28d9; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .term-section {
+            margin-top: 20px;
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            border-radius: 0 14px 14px 0;
+            padding: 20px;
+        }
+        
+        .term-section h4 { color: #065f46; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .template-section {
+            margin-top: 20px;
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 14px 14px 0;
+            padding: 20px;
+        }
+        
+        .template-section h4 { color: #1d4ed8; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .disclaimer {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fef2f2;
+            border-radius: 12px;
+            color: #dc2626;
+            font-size: 0.9rem;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .loading { text-align: center; padding: 60px; color: #0ea5e9; }
+        .loading i { font-size: 4rem; animation: spin 2s linear infinite; display: block; margin-bottom: 15px; }
+        
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .copy-btn {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .copy-btn:hover { background: #cbd5e1; }
+        .copy-btn.copied { background: #10b981; color: white; }
+        
+        /* 历史记录样式 */
+        .history-section { margin-top: 30px; padding: 20px; background: #f8fafc; border-radius: 14px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .history-header h3 { color: #1e293b; font-size: 1.2rem; }
+        .history-list { max-height: 400px; overflow-y: auto; }
+        
+        
+        .history-item {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .history-item:hover { border-color: #0ea5e9; }
+        .history-item-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .history-item-type { font-weight: 600; color: #0ea5e9; font-size: 0.9rem; }
+        .history-item-date { color: #94a3b8; font-size: 0.85rem; }
+        .history-item-preview { color: #64748b; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* 公卫报表样式 */
+        .report-card {
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .report-card h4 { color: #065f46; margin-bottom: 15px; }
+        
+        /* 慢病表单 */
+        .chronic-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .chronic-form .form-group { }
+        .chronic-form label { display: block; margin-bottom: 8px; font-weight: 600; color: #334155; font-size: 0.9rem; }
+        .chronic-form input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; width: 100%; }
+        
+        /* 模态框 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: white; border-radius: 20px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { padding: 25px 30px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 1.5rem; margin: 0; }
+        .modal-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
+        .modal-body { padding: 30px; }
+        .modal-footer { padding: 20px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 15px; }
+        .btn-modal { padding: 12px 28px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+        .btn-modal-primary { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; }
+        .btn-modal-secondary { background: #f1f5f9; color: #64748b; }
+        
+        .show-guide-btn { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 5px 20px rgba(14, 165, 233, 0.4); font-size: 1.5rem; transition: transform 0.3s; }
+        .show-guide-btn:hover { transform: scale(1.1); }
+        
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: #1e293b;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 AI医疗文书智能体</h1>
+            <p>安静的后台助手，专注医疗文书自动化</p>
+            <div class="version-badge">✨ v3.0 — 入院记录 · 出院小结 · 随访记录</div>
+        </div>
+        
+        <div class="main-card">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('text')">📝 文本输入</button>
+                <button class="tab" onclick="showTab('chronic')">🩺 慢病随访</button>
+                <button class="tab" onclick="showTab('public')">📊 公卫报表</button>
+                <button class="tab" onclick="showTab('history')">📋 历史记录</button>
+            </div>
+            
+            <div class="tab-content">
+                <!-- 文本输入 -->
+                <div id="tab-text" class="tab-pane">
+                    <div class="feature-badges">
+                        <span class="badge">📋 自动病历生成</span>
+                        <span class="badge badge-blue">🔤 术语标准化</span>
+                        <span class="badge badge-purple">📑 智能模板</span>
+                        <span class="badge">💡 AI辅助建议</span>
+                        <span class="badge badge-warning">⌨️ Ctrl+Enter快速生成</span>
+                    </div>
+                    
+                    <div class="record-type-selector">
+                        <button class="record-type-btn active" onclick="setRecordType('admission_note')">入院记录</button>
+                        <button class="record-type-btn" onclick="setRecordType('outpatient_note')">门诊病历</button>
+                        <button class="record-type-btn" onclick="setRecordType('discharge_summary')">出院小结</button>
+                    </div>
+                    
+                    <div class="quick-tips">
+                        <h4>快捷键提示</h4>
+                        <ul>
+                            <li><span class="keyboard-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd></span> 快速生成病历</li>
+                            <li><span class="keyboard-hint"><kbd>Ctrl</kbd>+<kbd>L</kbd></span> 清空输入</li>
+                            <li><span class="keyboard-hint"><kbd>Ctrl</kbd>+<kbd>C</kbd></span> 复制结果</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="input-section">
+                        <label for="inputText">输入医患对话或医生口述内容</label>
+                        <textarea id="inputText" placeholder="例如：患者头痛3天，伴恶心呕吐..."></textarea>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="generateRecord()" id="generateBtn">
+                            ✨ 生成病历 <span class="keyboard-hint" style="background: transparent; color: white; padding: 0;">⌨️</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearInput()">🗑️ 清空</button>
+                    </div>
+                </div>
+                
+                
+                <!-- 慢病随访 -->
+                <div id="tab-chronic" class="tab-pane" style="display: none;">
+                    <div class="feature-badges">
+                        <span class="badge badge-purple">💉 糖尿病随访</span>
+                        <span class="badge badge-warning">🩸 高血压管理</span>
+                        <span class="badge">📊 指标自动提取</span>
+                    </div>
+                    
+                    <div class="record-type-selector">
+                        <button class="record-type-btn active" onclick="setChronicType('diabetes')">糖尿病随访</button>
+                        <button class="record-type-btn" onclick="setChronicType('hypertension')">高血压随访</button>
+                    </div>
+                    
+                    <div class="chronic-form">
+                        <div class="form-group">
+                            <label>空腹血糖 (mmol/L)</label>
+                            <input type="text" id="bloodSugar" placeholder="如：7.2">
+                        </div>
+                        <div class="form-group">
+                            <label>餐后血糖 (mmol/L)</label>
+                            <input type="text" id="bloodSugar2h" placeholder="如：10.5">
+                        </div>
+                        <div class="form-group">
+                            <label>血压 (mmHg)</label>
+                            <input type="text" id="bloodPressure" placeholder="如：130/80">
+                        </div>
+                        <div class="form-group">
+                            <label>糖化血红蛋白 (%)</label>
+                            <input type="text" id="hba1c" placeholder="如：7.5">
+                        </div>
+                    </div>
+                    
+                    <div class="input-section">
+                        <label for="chronicNote">患者症状描述</label>
+                        <textarea id="chronicNote" placeholder="如：患者无明显不适，规律用药..."></textarea>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-purple" onclick="generateChronicRecord()">📋 生成随访记录</button>
+                        <button class="btn btn-orange" onclick="generatePublicHealthReport()">📊 生成公卫报表</button>
+                        <button class="btn btn-secondary" onclick="clearChronicInput()">🗑️ 清空</button>
+                    </div>
+                </div>
+                
+                <!-- 公卫报表 -->
+                <div id="tab-public" class="tab-pane" style="display: none;">
+                    <div class="feature-badges">
+                        <span class="badge">📋 档案自动生成</span>
+                        <span class="badge badge-blue">✅ 符合国家规范</span>
+                        <span class="badge badge-purple">📝 一键导出</span>
+                    </div>
+                    
+                    <div class="quick-tips">
+                        <h4>公卫报表功能</h4>
+                        <ul>
+                            <li>根据随访记录自动生成符合《国家基本公共卫生服务规范》的报表</li>
+                            <li>支持糖尿病、高血压患者健康管理档案</li>
+                            <li>自动填充健康指导内容</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="input-section">
+                        <label for="publicHealthNote">输入患者基本信息</label>
+                        <textarea id="publicHealthNote" placeholder="如：王先生，58岁，诊断2型糖尿病5年，目前规律服用二甲双胍..."></textarea>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-purple" onclick="generatePublicHealthFromText()">📊 生成公卫报表</button>
+                        <button class="btn btn-secondary" onclick="clearPublicHealthInput()">🗑️ 清空</button>
+                    </div>
+                </div>
+                
+                <!-- 历史记录 -->
+                <div id="tab-history" class="tab-pane" style="display: none;">
+                    <div class="feature-badges">
+                        <span class="badge badge-blue">📋 本地存储</span>
+                        <span class="badge">🔍 快速检索</span>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="historySearch" placeholder="搜索历史记录..." style="flex: 1; min-width: 200px; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                        <select id="historyFilter" style="padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; min-width: 150px;">
+                            <option value="">全部类型</option>
+                            <option value="admission_note">入院记录</option>
+                            <option value="outpatient_note">门诊病历</option>
+                            <option value="follow_up_record">随访记录</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="loadHistory()">🔍 搜索</button>
+                    </div>
+                    
+                    <div class="history-list" id="historyList">
+                        <p style="color: #94a3b8; text-align: center; padding: 40px;">点击"加载历史"查看记录</p>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn btn-secondary" onclick="loadHistory()">📋 加载历史记录</button>
+                        <button class="btn btn-secondary" onclick="exportHistory()">💾 导出全部</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 结果区域 -->
+            <div id="resultArea" style="display: none;" class="result-section">
+                <div class="result-header">
+                    <h3>📄 生成结果 <span id="recordIdBadge" style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;"></span></h3>
+                    <button class="copy-btn" onclick="copyResult()">📋 复制病历</button>
+                </div>
+                <div id="resultContent" class="result-card"></div>
+                
+                <div id="termArea" class="term-section" style="display: none;">
+                    <h4>📝 术语标准化校正</h4>
+                    <div id="termContent"></div>
+                </div>
+                
+                <div id="templateArea" class="template-section" style="display: none;">
+                    <h4>📑 匹配模板建议</h4>
+                    <div id="templateContent"></div>
+                </div>
+                
+                <div id="qcArea" class="qc-section" style="display: none;">
+                    <h4>✅ 质控建议清单</h4>
+                    <div id="qcContent"></div>
+                </div>
+                
+                <div id="aiArea" class="ai-section" style="display: none;">
+                    <h4>💡 AI辅助建议</h4>
+                    <div id="aiContent"></div>
+                </div>
+                
+                <div id="reportArea" class="report-card" style="display: none;">
+                    <h4>📊 公卫报表</h4>
+                    <div id="reportContent"></div>
+                </div>
+                
+                <div class="disclaimer">
+                    ⚠️ 本智能体是医生的辅助工具，不具备独立诊断权，所有输出仅供参考，必须经医生审阅签字后方可使用。
+                </div>
+            </div>
+            
+            <!-- 加载状态 -->
+            <div id="loadingArea" style="display: none;" class="loading">
+                <i>🔄</i>
+                <p>正在生成病历...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 使用说明弹窗 -->
+    <div id="guideModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                                <h2>🚀 产品介绍 v3.0</h2>
+                <button class="modal-close" onclick="closeGuide()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #0ea5e9; margin-bottom: 15px;">⚡ 三种医疗文书，一键生成</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 8px 0; color: #475569;">✅ <strong>入院记录</strong>：从医患对话自动提取主诉、现病史、体格检查、辅助检查、诊断和治疗计划</li>
+                        <li style="padding: 8px 0; color: #475569;">✅ <strong>出院小结</strong>：自动生成入院情况、诊疗经过、出院诊断、出院医嘱</li>
+                        <li style="padding: 8px 0; color: #475569;">✅ <strong>随访记录</strong>：慢病管理随访、复查评估、用药依从性评估</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #10b981; margin-bottom: 15px;">🛡️ 智能输入守卫</h3>
+                    <p style="color: #475569; font-size: 0.9rem;">17类恶意/异常输入拦截：纯数字、键盘乱敲、XSS/SQL注入、Prompt越狱、零宽字符等，零API费用拦截</p>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #8b5cf6; margin-bottom: 15px;">⌨️ 快捷操作</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 4px 0; color: #475569;">💬 <strong>文本输入</strong>：Ctrl+Enter 生成，Ctrl+L 清空</li>
+                        <li style="padding: 4px 0; color: #475569;">📋 <strong>历史记录</strong>：本地存储，支持搜索</li>
+                    </ul>
+                </div>
+                <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 10px 10px 0;">
+                    <strong style="color: #92400e;">⚠️ 重要提示：</strong>
+                    <span style="color: #92400e; font-size: 0.9rem;">本智能体是医生的辅助工具，不具备独立诊断权，所有输出仅供参考。</span>
+                </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-modal-secondary" onclick="closeGuide()">知道了</button>
+                <button class="btn-modal btn-modal-primary" onclick="closeGuideAndStart()">开始使用</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast提示 -->
+    <div id="toast" class="toast"></div>
+    
+    <button class="show-guide-btn" onclick="showGuide()">❓</button>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let recordType = 'admission_note';
+        let chronicType = 'diabetes';
+        let currentRecordId = '';
+        
+        // 显示加载动画
+        function showLoading() {
+            document.getElementById('loadingArea').style.display = 'block';
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('generateBtn').disabled = true;
+        }
+        
+        // 隐藏加载动画
+        function hideLoading() {
+            document.getElementById('loadingArea').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+        }
+        
+        // 显示Toast提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // 快捷键支持
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                generateRecord();
+            } else if (e.ctrlKey && e.key === 'l') {
+                e.preventDefault();
+                clearInput();
+            } else if (e.ctrlKey && e.key === 'c' && document.getElementById('resultArea').style.display !== 'none') {
+                e.preventDefault();
+                copyResult();
+            }
+        });
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+            const tabIndex = ['text', 'chronic', 'public', 'history'].indexOf(tabName) + 1;
+            document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+            
+            if (tabName === 'history') {
+                loadHistory();
+            }
+        }
+        
+        function setRecordType(type) {
+            document.querySelectorAll('.record-type-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            recordType = type;
+        }
+        
+        function setChronicType(type) {
+            chronicType = type;
+        }
+        
+        async function generateRecord() {
+            const inputText = document.getElementById('inputText').value.trim();
+            if (!inputText) {
+                showToast('请输入内容');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/v3/generate-record`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input_text: inputText, record_type: recordType })
+                });
+                
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                showToast('请求失败: ' + error.message);
+                hideLoading();
+            }
+        }
+        
+        async function generateChronicRecord() {
+            const sugar = document.getElementById('bloodSugar').value;
+            const sugar2h = document.getElementById('bloodSugar2h').value;
+            const pressure = document.getElementById('bloodPressure').value;
+            const hba1c = document.getElementById('hba1c').value;
+            const note = document.getElementById('chronicNote').value;
+            
+            let inputText = `患者${chronicType === 'diabetes' ? '糖尿病' : '高血压'}随访`;
+            if (sugar) inputText += `，空腹血糖${sugar}mmol/L`;
+            if (sugar2h) inputText += `，餐后血糖${sugar2h}mmol/L`;
+            if (pressure) inputText += `，血压${pressure}mmHg`;
+            if (hba1c) inputText += `，糖化血红蛋白${hba1c}%`;
+            if (note) inputText += `，${note}`;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/generate-record`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input_text: inputText, record_type: 'follow_up_record' })
+                });
+                
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                showToast('请求失败: ' + error.message);
+                hideLoading();
+            }
+        }
+        
+        async function generatePublicHealthReport() {
+            await generateChronicRecord();
+        }
+        
+        async function generatePublicHealthFromText() {
+            const note = document.getElementById('publicHealthNote').value.trim();
+            if (!note) {
+                showToast('请输入患者信息');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/generate-public-health-report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input_text: note, record_type: 'follow_up_record' })
+                });
+                
+                const result = await response.json();
+                
+                hideLoading();
+                
+                if (result.status === 'success') {
+                    document.getElementById('resultArea').style.display = 'block';
+                    document.getElementById('reportArea').style.display = 'block';
+                    document.getElementById('reportContent').innerHTML = formatReport(result.report);
+                    showToast('公卫报表生成成功');
+                } else {
+                    showToast(result.message || '生成失败');
+                }
+            } catch (error) {
+                showToast('请求失败: ' + error.message);
+                hideLoading();
+            }
+        }
+        
+        function displayResult(result) {
+            hideLoading();
+            
+            if (result.status === 'error') {
+                showToast(result.message);
+                return;
+            }
+            
+            if (result.status === 'awaiting_input') {
+                showToast(result.message);
+                return;
+            }
+            
+            if (result.status === 'warning') {
+                showToast(result.message);
+                return;
+            }
+            
+            if (result.status !== 'success') {
+                showToast('未知错误');
+                return;
+            }
+            
+            document.getElementById('resultArea').style.display = 'block';
+            const resultContent = document.getElementById('resultContent');
+            
+            } else if (result.record && result.record.chief_complaint) {
+                // 备用：从record字段构建输出（根据文书类型自适应）
+                let typeName = getRecordTypeName(result.record_type || recordType);
+                let output = `<h3>${typeName}</h3>`;
+                output += `<p><strong>主诉：</strong>${result.record.chief_complaint || '待补充'}</p>`;
+                if (result.record.present_illness) output += `<p><strong>现病史/入院情况：</strong>${result.record.present_illness}</p>`;
+                if (result.record.past_history) output += `<p><strong>既往史/诊疗经过：</strong>${result.record.past_history}</p>`;
+                if (result.record.physical_exam) output += `<p><strong>体格检查：</strong>${result.record.physical_exam}</p>`;
+                if (result.record.auxiliary_exam) output += `<p><strong>辅助检查：</strong>${result.record.auxiliary_exam}</p>`;
+                if (result.record.preliminary_diagnosis) output += `<p><strong>诊断：</strong>${String(result.record.preliminary_diagnosis)}</p>`;
+                if (result.record.treatment_plan) output += `<p><strong>医嘱：</strong>${result.record.treatment_plan}</p>`;
+                resultContent.innerHTML = output;
+            }
+            
+            // 隐藏不需要的区域
+            document.getElementById('qcArea').style.display = 'none';
+            document.getElementById('termArea').style.display = 'none';
+            document.getElementById('templateArea').style.display = 'none';
+            document.getElementById('aiArea').style.display = 'none';
+            document.getElementById('reportArea').style.display = 'none';
+        }
+        
+        function formatReport(report) {
+            let html = '';
+            for (const [key, value] of Object.entries(report)) {
+                if (typeof value === 'object' && value !== null) {
+                    html += `<p><strong>${key}：</strong></p>`;
+                    for (const [subKey, subValue] of Object.entries(value)) {
+                        html += `<p style="margin-left: 20px;">• ${subKey}：${subValue}</p>`;
+                    }
+                } else {
+                    html += `<p><strong>${key}：</strong> ${value}</p>`;
+                }
+            }
+            return html;
+        }
+        
+        function formatMarkdown(text) {
+            return text
+                .replace(/^# (.*)/gm, '<h2 style="color:#0ea5e9;border-bottom:2px solid #e2e8f0;padding-bottom:8px;margin-bottom:16px;">$1</h2>')
+                .replace(/### (.*)/g, '<h4>$1</h4>')
+                .replace(/## (.*)/g, '<h3>$1</h3>')
+                .replace(/\*\*(.*?)：\*\*/g, '<strong>$1：</strong>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/🔴/g, '<span style="color: #dc2626;">🔴</span>')
+                .replace(/🟡/g, '<span style="color: #f59e0b;">🟡</span>')
+                .replace(/🔵/g, '<span style="color: #3b82f6;">🔵</span>')
+                .replace(/🩺/g, '<span style="color: #8b5cf6;">🩺</span>');
+        }
+        
+        async function loadHistory() {
+            try {
+                const keyword = document.getElementById('historySearch').value;
+                const filter = document.getElementById('historyFilter').value;
+                
+                const url = new URL(`${API_BASE}/api/v2/history`);
+                if (keyword) url.searchParams.append('keyword', keyword);
+                if (filter) url.searchParams.append('record_type', filter);
+                url.searchParams.append('limit', '50');
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                const historyList = document.getElementById('historyList');
+                
+                if (result.records && result.records.length > 0) {
+                    historyList.innerHTML = result.records.map(record => `
+                        <div class="history-item" onclick="loadHistoryDetail('${record.record_id}')">
+                            <div class="history-item-header">
+                                <span class="history-item-type">${getRecordTypeName(record.record_type)}</span>
+                                <span class="history-item-date">${new Date(record.created_at).toLocaleString()}</span>
+                            </div>
+                            <div class="history-item-preview">${record.content.substring(0, 100)}...</div>
+                        </div>
+                    `).join('');
+                } else {
+                    historyList.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 40px;">暂无历史记录</p>';
+                }
+            } catch (error) {
+                showToast('加载历史记录失败');
+            }
+        }
+        
+        function getRecordTypeName(type) {
+            const names = {
+                'admission_note': '入院记录',
+                'outpatient_note': '门诊病历',
+                'discharge_summary': '出院小结',
+                'follow_up_record': '随访记录',
+                'public_health_report': '公卫报表'
+            };
+            return names[type] || type;
+        }
+        
+        function loadHistoryDetail(recordId) {
+            fetch(`${API_BASE}/api/v2/history/${recordId}`)
+                .then(response => response.json())
+                .then(record => {
+                    document.getElementById('inputText').value = record.content;
+                    showTab('text');
+                    displayResult({ status: 'success', record: { formatted_output: record.content, record_id: record.record_id } });
+                })
+                .catch(error => showToast('加载记录详情失败'));
+        }
+        
+        async function exportHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/history?limit=500`);
+                const result = await response.json();
+                
+                const blob = new Blob([JSON.stringify(result.records, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `病历记录_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                
+                showToast('导出成功');
+            } catch (error) {
+                showToast('导出失败');
+            }
+        }
+        
+        function clearInput() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultArea').style.display = 'none';
+            currentRecordId = '';
+        }
+        
+        function clearChronicInput() {
+            document.getElementById('bloodSugar').value = '';
+            document.getElementById('bloodSugar2h').value = '';
+            document.getElementById('bloodPressure').value = '';
+            document.getElementById('hba1c').value = '';
+            document.getElementById('chronicNote').value = '';
+            document.getElementById('resultArea').style.display = 'none';
+        }
+        
+        function clearPublicHealthInput() {
+            document.getElementById('publicHealthNote').value = '';
+            document.getElementById('resultArea').style.display = 'none';
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingArea').style.display = 'block';
+            document.getElementById('resultArea').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingArea').style.display = 'none';
+        }
+        
+        function copyResult() {
+            const resultContent = document.getElementById('resultContent');
+            const text = resultContent.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('已复制到剪贴板');
+            });
+        }
+        
+        
+        // 将音频 Blob 转换为 WAV 格式
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+            document.getElementById('inputText').scrollIntoView({ behavior: 'smooth' });
+            showToast('✅ 转写文本已填入，可编辑后重新生成');
+        }
+        
+        // 模态框控制
+        function showGuide() { document.getElementById('guideModal').classList.add('show'); }
+        function closeGuide() { document.getElementById('guideModal').classList.remove('show'); }
+        function closeGuideAndStart() { closeGuide(); document.getElementById('inputText')?.focus(); }
+        
+        // 首次访问显示指南
+        document.addEventListener('DOMContentLoaded', () => {
+            const hasVisitedV2 = localStorage.getItem('hasVisitedV2');
+            if (!hasVisitedV2) {
+                setTimeout(() => showGuide(), 500);
+                localStorage.setItem('hasVisitedV2', 'true');
+            }
+        });
+    </script>
+</body>
+</html>

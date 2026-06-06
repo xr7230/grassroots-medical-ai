@@ -1,0 +1,34 @@
+# 核心框架
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+python-dotenv==1.0.1
+
+# 大模型相关
+openai==1.51.0
+langchain==0.3.3
+
+# 工具库
+python-multipart==0.0.12
+pydantic-settings==2.6.0
+httpx==0.27.2
+
+# 日志
+loguru==0.7.2
+
+# 版本二新增依赖
+# 数据加密
+cryptography==43.0.0
+
+# 本地存储（IndexedDB支持离线）
+# 无需额外安装，使用浏览器的localStorage
+
+# 快捷键支持
+# 无需额外安装，使用浏览器的KeyboardEvent
+
+# 语音识别
+faster-whisper>=1.0.0
+
+# 阿里云语音识别
+websockets>=12.0
+requests>=2.31.0

@@ -1,0 +1,70 @@
+﻿# ===== 环境配置文件（含敏感密钥，禁止提交） =====
+.env
+!.env.example
+
+# ===== Python =====
+__pycache__/
+*.py[cod]`n*.pyc
+*.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ===== 虚拟环境 =====
+venv/
+env/
+.venv/
+.env/
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===== 运行时生成文件 =====
+history.json
+*.log
+analysis_output.txt
+
+# ===== 测试输出（JSON结果文件） =====
+test_result.json
+test_results.json
+test_new_result*.json
+
+# ===== 数据目录（如含敏感数据） =====
+# data/
+
+# ===== ChromaDB 向量数据库 =====
+data/chroma/
+chroma_db/
+
+# ===== 临时/调试文件 =====
+_backup/
+*.bak
+*.tmp
+temp_*.py
+debug_*.py
+_*.py
+!_eval_10pct.py
+!__init__.py
+
+# ===== 归档 =====
+_archive/
+archive/
+
+# ===== 大文件/二进制 =====
+*.pkl
+*.bin
+*.safetensors
+*.gguf
+
+# ===== 媒体文件 =====
+*.mp3
+*.wav
+*.mp4
+!.gitkeep
