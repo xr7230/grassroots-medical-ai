@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -633,7 +633,7 @@
     <button class="show-guide-btn" onclick="showGuide()">❓</button>
     
     <script>
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8000' : window.location.origin;
         let recordType = 'admission_note';
         let chronicType = 'diabetes';
         let currentRecordId = '';
@@ -1019,45 +1019,6 @@
         
         // 将音频 Blob 转换为 WAV 格式
         
-
-        // === API Key Settings ===
-        function getStoredApiKey() {
-            return localStorage.getItem('deepseek_api_key') || '';
-        }
-
-        function toggleSettings() {
-            const modal = document.getElementById('settingsModal');
-            modal.classList.toggle('show');
-            if (modal.classList.contains('show')) {
-                document.getElementById('apiKeyInput').value = getStoredApiKey();
-            }
-        }
-
-        function saveApiKey() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if (key && !key.startsWith('sk-')) {
-                showToast('API Key 应以 sk- 开头');
-                return;
-            }
-            localStorage.setItem('deepseek_api_key', key);
-            toggleSettings();
-            showToast(key ? 'API Key 已保存' : 'API Key 已清除');
-        }
-
-        // Patch fetch to inject API key header
-        const _origFetch = window.fetch;
-        window.fetch = function(url, options = {}) {
-            const key = getStoredApiKey();
-            if (key && url.includes('/api/')) {
-                options.headers = options.headers || {};
-                if (options.headers instanceof Headers) {
-                    options.headers.set('X-API-Key', key);
-                } else {
-                    options.headers['X-API-Key'] = key;
-                }
-            }
-            return _origFetch(url, options);
-        };
 
         function showToast(message) {
             const toast = document.getElementById('toast');
