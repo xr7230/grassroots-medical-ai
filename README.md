@@ -161,4 +161,5 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 ## 许可证
 
-MIT License - 详见 [LICENSE](./LICENSE)
+Proprietary License (All Rights Reserved) - 详见 [LICENSE](./LICENSE)
+

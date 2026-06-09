@@ -1,21 +1,63 @@
-﻿MIT License
+﻿# 项目专属使用授权协议
 
-Copyright (c) 2025 AI医疗文书智能体
+Copyright (c) 2026 肖锐. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## 一、协议概述
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+本协议为作者保留全部权利的限制性使用协议，替代一切默认开源协议。本项目所有代码、文档、资源、思路、逻辑及衍生内容的著作权、版权、解释权均归原作者（肖锐）独家所有。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+任何人获取、查看、克隆、使用本项目内容，即代表默认完全接受本协议全部条款，自愿遵守约束，承担违规带来的全部责任。
+
+## 二、允许使用范围（唯一合法权限）
+
+仅允许个人非商用、自学研究、本地测试使用。使用者可在个人本地设备内查看、学习、调试本项目内容，仅限个人知识学习用途。
+
+## 三、严格禁止行为（红线条款）
+
+未经作者书面专属授权，任何个人与组织严禁进行以下全部行为：
+
+- **禁止商用**：禁止用于任何盈利、接单、项目交付、课程制作、付费服务、商业改造、商业部署、引流变现等一切商业相关行为。
+- **禁止竞赛参评**：禁止将本项目用于任何学科竞赛、科创比赛、毕业设计评优、项目答辩参评、奖项申报等各类评比场景。
+- **禁止二次分发传播**：禁止转载、复刻、搬运、开源、上传至其他平台、公开分享、转发、打包发布、Fork后公开传播。
+- **禁止篡改冒充**：禁止删除作者署名、修改版权声明、伪装成个人原创、洗稿重构、变相抄袭衍生。
+- **禁止团队/企业使用**：禁止工作室、团队、公司、机构内部使用、部署、改造、复用。
+
+## 四、版权与归属说明
+
+1. 本项目所有内容均为作者原创，所有合法权利完全保留，不对外开源、不授予任何商用及衍生权利。
+2. 任何使用者不得依据本项目产生任何版权主张、著作权主张、知识产权主张。
+3. 若需合作、商用、参赛、二次分发、企业使用，必须单独联系作者获取书面授权后方可进行。
+
+## 五、违规追责条款
+
+任何违反本协议的行为，均构成侵权。作者有权终止使用权限、要求立即下架、追究民事赔偿、公开追责，违规者需承担全部法律责任与相关损失。
+
+## 六、其他说明
+
+本协议条款为最终生效条款，优先级高于项目过往所有协议、注释、说明。未授权的一切默认权利全部拒绝。
+
+---
+
+# Proprietary License (English)
+
+**Copyright (c) 2026 Xiao Rui. All Rights Reserved.**
+
+The original author reserves all intellectual property rights and copyrights of this project.
+
+**Permitted:** Personal, non-commercial, local study and research only. Users may view, learn, and debug the project content on their personal local devices for personal knowledge learning purposes only.
+
+**Strictly Prohibited without written authorization from the author:**
+
+1. Commercial use, profit-making, paid services, commercial deployment, or any business-related activities.
+2. Participation in competitions, academic evaluations, graduation assessments, or award applications.
+3. Redistribution, reproduction, forking, repackaging, public dissemination, or uploading to other platforms.
+4. Removing author attribution, modifying copyright notices, or passing off as original work.
+5. Team or enterprise internal use, deployment, modification, or derivative development.
+
+Any violation constitutes infringement. The author reserves the right to terminate usage permissions, demand immediate takedown, pursue civil damages, and hold violators legally accountable for all losses.
+
+**Contact the author for written authorization if you need:** commercial use, competition participation, secondary distribution, or enterprise deployment.
+
+---
+
+**This license is final and takes precedence over all previous licenses, notices, and comments associated with this project.**
