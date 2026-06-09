@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>附录C：原型系统工程实现报告</title>
+<style>
+* { margin: 0; padding: 0; }
+body { font-family: "SimSun", "Microsoft YaHei", serif; font-size: 11pt; line-height: 1.7; color: #222; background: #fff; }
+.page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm 22mm; }
+h1 { font-size: 16pt; text-align: center; margin-bottom: 8px; }
+h2 { font-size: 13pt; margin: 16px 0 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+h3 { font-size: 11.5pt; margin: 12px 0 6px; }
+p { margin: 4px 0; text-align: justify; }
+.subtitle { text-align: center; color: #555; font-size: 10pt; margin-bottom: 18px; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10pt; }
+th, td { border: 1px solid #999; padding: 4px 6px; text-align: left; }
+th { background: #eee; font-weight: bold; }
+td:first-child, th:first-child { white-space: nowrap; }
+pre { background: #f5f5f5; padding: 8px 12px; font-size: 9pt; line-height: 1.4; margin: 6px 0; overflow-x: auto; }
+code { font-family: "Consolas", "Courier New", monospace; font-size: 9.5pt; }
+strong { color: #000; }
+.note { font-size: 9.5pt; color: #666; margin: 4px 0; }
+ol, ul { margin: 4px 0 4px 20px; }
+li { margin: 2px 0; }
+@media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { margin: 0; padding: 20mm 22mm; width: 210mm; min-height: 277mm; }
+}
+@page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>附录C：原型系统工程实现报告</h1>
+<p class="subtitle">论文《基层医疗AI需求分析与设计转向研究》工程附件 | 2026年6月</p>
+
+<h2>C.1 系统概述</h2>
+<p>基于论文第4章提出的"诊断智能体→文书智能体"设计转向，开发了<strong>基层医疗AI文书智能体 v3.0</strong>（GitHub: grassroots-medical-ai），作为论文理论结论的工程验证。</p>
+<p><strong>核心定位：</strong>一个基层医生的文书副驾驶——输入医患对话或病情描述，自动生成规范医疗文书。诊断给方向，不给定论。</p>
+
+<p><strong>与论文的对应关系：</strong></p>
+<table>
+<tr><th>论文章节</th><th>工程对应</th></tr>
+<tr><td>§3.3 需求层次模型（文书减负占40.4%）</td><td>产品定位：纯文书自动化，不捆绑诊断</td></tr>
+<tr><td>§4.1 三重错配分析（重诊断轻文书）</td><td>三类文书覆盖：入院记录/出院小结/随访记录</td></tr>
+<tr><td>§4.2.2 文书智能体概念界定</td><td>安静后台设计原则、单品策略</td></tr>
+<tr><td>§4.3 原型系统验证</td><td>86项单元测试 + 自动化评估</td></tr>
+</table>
+
+<h2>C.2 系统架构</h2>
+<pre><code>├── backend/
+│   ├── agents/medical_agent.py    # 核心智能体（~5,600行）
+│   │   ├── InputGuard              # 17类输入守卫
+│   │   ├── CC提取器                # 主诉/伴随症状提取
+│   │   ├── LLM文书生成器           # 入院记录/出院小结/随访记录
+│   │   ├── 文书验证器              # 完成度/幻觉检测
+│   │   └── 医学知识引擎            # 14条诊断规则 + 术语翻译
+│   ├── api/main.py                # FastAPI接口 + 静态前端托管
+│   ├── perception/aliyun_asr.py   # 阿里云语音识别
+│   ├── knowledge/                 # 医学术语库
+│   └── tests/run_all_tests.py     # 86项单元测试
+├── frontend/index.html            # Web前端（文本/语音/三类文书切换）
+├── docs/index.html                # 在线Demo（GitHub Pages）
+├── data/                          # 6个JSON训练数据集
+├── 一键启动.bat                    # Windows本地一键启动
+├── 一键测试.bat                    # 运行全部测试
+└── .env.example                   # 环境变量模板（API Key不入库）</code></pre>
+
+<p><strong>技术栈：</strong></p>
+<table>
+<tr><th>组件</th><th>技术</th></tr>
+<tr><td>后端框架</td><td>FastAPI (Python 3.11+)</td></tr>
+<tr><td>大语言模型</td><td>DeepSeek API (Chat + Reasoner)</td></tr>
+<tr><td>语音识别</td><td>阿里云ASR</td></tr>
+<tr><td>前端</td><td>原生HTML/CSS/JS（零依赖）</td></tr>
+<tr><td>测试</td><td>pytest + 自建评测框架</td></tr>
+<tr><td>部署</td><td>GitHub Actions → GitHub Pages</td></tr>
+</table>
+
+<h2>C.3 核心功能模块</h2>
+
+<h3>C.3.1 三类文书生成</h3>
+<table>
+<tr><th>文书类型</th><th>核心内容</th><th>使用场景</th></tr>
+<tr><td>入院记录</td><td>主诉、现病史、既往史、体格检查、初步诊断、治疗计划</td><td>患者入院时</td></tr>
+<tr><td>出院小结</td><td>入院情况、诊疗经过、出院诊断、出院医嘱、随访建议</td><td>患者出院时</td></tr>
+<tr><td>随访记录</td><td>体格检查、用药评估、生活方式指导、下次随访建议</td><td>出院后复诊</td></tr>
+</table>
+
+<h3>C.3.2 17类输入守卫</h3>
+<table>
+<tr><th>类别</th><th>示例</th><th>处理方式</th></tr>
+<tr><td>纯数字/乱码</td><td>12345、asdfgh</td><td>拦截，提示输入医学描述</td></tr>
+<tr><td>SQL注入</td><td>' OR '1'='1</td><td>拦截，记录警告</td></tr>
+<tr><td>XSS攻击</td><td>&lt;script&gt;alert(1)&lt;/script&gt;</td><td>拦截，净化输出</td></tr>
+<tr><td>超长输入</td><td>&gt;5,000字符</td><td>截断并警告</td></tr>
+<tr><td>纯英文无医学</td><td>hello world</td><td>拦截，要求中文医学描述</td></tr>
+<tr><td>重复字符</td><td>头痛×50</td><td>去重后处理</td></tr>
+<tr><td>空输入/空白</td><td>空格、换行</td><td>拦截</td></tr>
+<tr><td>非医学提问</td><td>今天天气怎么样</td><td>拦截</td></tr>
+<tr><td>政治敏感</td><td>政治人物/事件</td><td>拦截</td></tr>
+<tr><td>脏话侮辱</td><td>辱骂内容</td><td>拦截</td></tr>
+<tr><td>JSON注入</td><td>{"__proto__":...}</td><td>拦截</td></tr>
+<tr><td>命令注入</td><td>$(rm -rf /)</td><td>拦截</td></tr>
+<tr><td>特殊字符洪水</td><td>!@#$%^&*()...</td><td>拦截</td></tr>
+<tr><td>URL/链接</td><td>http://malware.com</td><td>拦截</td></tr>
+<tr><td>个人信息泄露</td><td>身份证号、银行卡号</td><td>脱敏处理</td></tr>
+<tr><td>Hex/Base64编码攻击</td><td>编码后恶意载荷</td><td>解码检测后拦截</td></tr>
+<tr><td>对抗性前缀</td><td>忽略前面的指令...</td><td>拦截</td></tr>
+</table>
+
+<h3>C.3.3 隐私脱敏</h3>
+<ul>
+<li>姓名→李**、电话→139****4321、身份证→110101********2345</li>
+<li>地址保留至区级，门牌号脱敏</li>
+<li>.env 不入库（.gitignore），API Key 不泄露</li>
+</ul>
+
+<h3>C.3.4 设计原则</h3>
+<table>
+<tr><th>原则</th><th>实现</th></tr>
+<tr><td><strong>安全第一</strong></td><td>信息不足不编造；攻击输入正确拦截；诊断方向与症状系统一致</td></tr>
+<tr><td><strong>安静后台</strong></td><td>不打断医生工作流，不弹出诊断建议刷存在感</td></tr>
+<tr><td><strong>给方向不给定论</strong></td><td>诊断标注"可能"/"待排"，一次对话不声称百分百确诊</td></tr>
+<tr><td><strong>隐私保护</strong></td><td>.env不入库；敏感信息自动脱敏；语音数据不落盘</td></tr>
+</table>
+
+<h2>C.4 测试与验证</h2>
+
+<h3>C.4.1 86项单元测试</h3>
+<p>全部86项测试通过，按类别分布如下：</p>
+<table>
+<tr><th>测试类别</th><th style="text-align:center">项数</th><th>测试内容</th></tr>
+<tr><td>数值提取与校验</td><td style="text-align:center">22</td><td>体温/血压/血糖多值提取、异常值标记、正常值不误判</td></tr>
+<tr><td>隐私脱敏</td><td style="text-align:center">10</td><td>姓名、电话（含格式变异）、身份证、地址脱敏</td></tr>
+<tr><td>中英术语翻译</td><td style="text-align:center">7</td><td>STEMI→心肌梗死、PCI→介入治疗、qd→每日一次</td></tr>
+<tr><td>输入守卫</td><td style="text-align:center">6</td><td>纯英文拦截、短输入、纯数字、超长输入</td></tr>
+<tr><td>诊断生成</td><td style="text-align:center">5</td><td>诊断合理性校验、2型糖尿病识别、非高血压不误判</td></tr>
+<tr><td>攻击检测</td><td style="text-align:center">4</td><td>测试关键词、虚假诊断、外院诊断→入院记录</td></tr>
+<tr><td>主诉提取</td><td style="text-align:center">4</td><td>阴性症状、阳性体征、口语风格保留</td></tr>
+<tr><td>否定词逻辑</td><td style="text-align:center">3</td><td>"无发热""无咳嗽""无咳痰"不被误提取为症状</td></tr>
+<tr><td>异常值边界</td><td style="text-align:center">3</td><td>体温1000℃、血压0/0、血糖-999→标记异常不崩溃</td></tr>
+<tr><td>既往史/体格检查</td><td style="text-align:center">6</td><td>高血压进既往史、心率提取、外伤体征</td></tr>
+<tr><td>其他边界</td><td style="text-align:center">8</td><td>口语名提取、电话格式变异、数据模式识别</td></tr>
+<tr><td>端到端测试</td><td style="text-align:center">8</td><td>8份完整病历端到端验证</td></tr>
+<tr><td><strong>合计</strong></td><td style="text-align:center"><strong>86</strong></td><td><strong>全部通过</strong></td></tr>
+</table>
+
+<h3>C.4.2 自动化评估指标</h3>
+<table>
+<tr><th>指标</th><th style="text-align:center">数值</th><th>说明</th></tr>
+<tr><td>主诉提取准确率</td><td style="text-align:center">≈90%</td><td>对话输入LLM路由</td></tr>
+<tr><td>诊断方向一致率</td><td style="text-align:center">≈90%</td><td>诊断方向与症状系统一致性</td></tr>
+<tr><td>入院记录完成度</td><td style="text-align:center">100%</td><td>必填字段填充率</td></tr>
+<tr><td>入院记录可读性</td><td style="text-align:center">100%</td><td>格式规范性</td></tr>
+<tr><td>出院小结质量</td><td style="text-align:center">10/10</td><td>出院小结专项评估</td></tr>
+<tr><td>随访记录质量</td><td style="text-align:center">5/5</td><td>随访记录专项评估</td></tr>
+<tr><td>输入守卫覆盖率</td><td style="text-align:center">17/17</td><td>全部类别可拦截</td></tr>
+</table>
+<p class="note">需说明：上述数据为自动化测试评估结果，未经临床医生审核校验，仅证明技术路径的工程可行性，不构成临床有效性证据。</p>
+
+<h2>C.5 边缘案例分析</h2>
+<p>基于86项单元测试及30样本自动化评估中暴露的失败模式，归纳为5类系统性偏差：</p>
+<table>
+<tr><th>偏差类型</th><th style="text-align:center">占比</th><th>根因</th></tr>
+<tr><td>A. 守卫过度防御</td><td style="text-align:center">~30%</td><td>中英夹杂、医学数值被误拦——系统假设纯中文输入</td></tr>
+<tr><td>B. 信息稀疏退化</td><td style="text-align:center">~35%</td><td>输入不完整时返回占位符而非主动追问</td></tr>
+<tr><td>C. 诊断过度保守</td><td style="text-align:center">~20%</td><td>14条规则引擎覆盖不足，超出范围回退"待查"</td></tr>
+<tr><td>D. 数值提取脆弱</td><td style="text-align:center">~15%</td><td>正则贪婪导致"P1234次/分"类荒谬输出</td></tr>
+<tr><td>E. 语义逃逸</td><td style="text-align:center">1例</td><td>词法守卫防不住语义层攻击（13/14边界）</td></tr>
+</table>
+<p><strong>核心发现：</strong>系统设计假设"输入是结构化完整病历"，但基层医生实际输入是碎片化、口语化、中英夹杂的。该偏差导致A+B类合计约65%的失败。</p>
+
+<h2>C.6 部署与访问</h2>
+<table>
+<tr><th>项目</th><th>地址</th></tr>
+<tr><td>GitHub仓库</td><td>https://github.com/xr7230/grassroots-medical-ai</td></tr>
+<tr><td>在线Demo</td><td>https://xr7230.github.io/grassroots-medical-ai/</td></tr>
+<tr><td>本地启动</td><td>双击 一键启动.bat，浏览器打开 http://localhost:8000</td></tr>
+<tr><td>本地测试</td><td>双击 一键测试.bat，运行全部86项单元测试</td></tr>
+</table>
+<p><strong>环境要求：</strong>Python 3.11+、DeepSeek API Key（用户自行配置，填入 .env 文件）</p>
+
+<h2>C.7 使用授权</h2>
+<p>本项目采用<strong>专属使用授权协议</strong>（保留全部权利），替代默认开源协议（MIT）：</p>
+<ul>
+<li><strong>允许</strong>：个人非商用、自学研究、本地测试</li>
+<li><strong>禁止</strong>（未经书面授权）：商用、竞赛参评、二次分发、篡改冒充、团队/企业使用</li>
+<li><strong>授权联系</strong>：1780823445@qq.com</li>
+</ul>
+
+<p style="text-align:center; margin-top: 30px; color: #888;">— 报告完 —</p>
+<p style="text-align:center; color: #888; font-size: 9pt;">作者：肖锐 | 重庆邮电大学 医学信息工程 | 2026年6月</p>
+
+</div>
+</body>
+</html>
